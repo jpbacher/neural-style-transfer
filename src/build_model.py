@@ -3,9 +3,10 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_hub as hub
+from PIL import Image
 
 
-class ProcessImages():
+class LoadResizeImages():
     """
     This class loads and processes (scales & resizes) the content & style images 
     for the Neural Style Transfer.
@@ -43,61 +44,23 @@ class ProcessImages():
         return tf.image.rot90(image, k=rotations)
     
 
-class NST():
-    """ """
-    def __init__(self):
-        # intermediate layers to represent content & style of image
-        self.content_layers = ['block5_conv2']
-        self.style_layers = [
-            'block1_conv1',
-            'block2_conv1',
-            'block3_conv1',
-            'block4_conv1',
-            'block5_conv1'
-        ]
-        self.content_layer_count = len(self.content_layers)
-        self.style_layer_count = len(self.style_layers)
-        self._build_vgg_model()
+class HubStylizedImage():
+    """Use transfer learning to make a stylized image quickly."""
+    def __init__(self, content_image, style_image, module_to_load):
+        self.content_image = content_image
+        self.style_image = style_image
+        self.module_to_load = hub.load(module_to_load)
+        # self._get_stylized_image(self.content_image, self.style_image)
         
-    def _build_vgg_model(self, layer_names):
-        """
-        This loads a VGG19 model, and accesses the intermediate layers.
-        """
-        # load pretrained VGG19 model.
-        self.vgg = tf.keras.applications.VGG19(include_top=False, weights='imagenet')
-        self.vgg.trainable = False
-        self.content_outputs = [self.vgg.get_layer(
-            name).output for name in self.content_layers]
-        self.style_outputs = [self.vgg.get_layer(
-            name).output for name in self.style_layers]
-        self.model_outputs = self.content_outputs + self.style_outputs
-        self.model = tf.keras.Model([self.vgg.input], self.model_outputs)
+    def get_stylized_image(self):
+        stylized_image = self.module_to_load(tf.constant(self.content_image),
+                                             tf.constant(self.style_image))[0]
+        return self._convert_to_image(stylized_image)
         
-    def _get_gram_matrix(self, input_tensor):
-        """
-        Compute the gram matrix of the input tensor.
-        """
-        gm_result = tf.linalg.einsum('bijc,bijd->bcd', input_tensor, input_tensor)
-        input_shape = tf.shape(input_tensor)
-        num_locations = tf.cast(input_shape[1]*input_shape[2], tf.float32)
-        return gm_result / num_locations
-    
-    def _get_total_loss(self, outputs):
-        content_outputs = outputs['content']
-        style_outputs = output['style']
-        style_loss = tf.add_n([tf.reduce_mean(
-            (style_outputs[name] - style_targets[name])**2) 
-            for name in style_outputs.keys()])
-        style_loss *= style_weight / self.style_layer_count
-        content_loss = tf.add_n(([tf.reduce_mean(
-            (content_outputs[name] - content_targets[name])**2)
-            for name in content_outputs.keys()])
-   
-    @tf.function()
-    def train_step(self, image):
-        with tf.GradientTape() as t:
-            outputs = extractor(image)
-            loss = self._get_total_loss(outputs)
-        gradients = t.gradient(loss, image)
-        optimizer.apply_gradients([(gradients, image)])
-        image.assign(clip(image))
+    def _convert_to_image(self, tensor):
+        tensor = tensor * 255
+        tensor = np.array(tensor, dtype=np.uint8)
+        if np.ndim(tensor) > 3:
+            assert tensor.shape[0] == 1
+            tensor = tensor[0]
+        return Image.fromarray(tensor)
