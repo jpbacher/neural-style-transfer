@@ -52,10 +52,15 @@ class HubStylizedImage():
         self.module_to_load = hub.load(module_to_load)
         
     def get_stylized_image(self):
-        stylized_image = self.module_to_load(tf.constant(self.content_image),
-                                             tf.constant(self.style_image))[0]
-        return self._convert_to_image(stylized_image)
+        tensor = self.module_to_load(tf.constant(self.content_image),
+                                     tf.constant(self.style_image))[0]
+        self.stylized_image = self._convert_to_image(tensor)
+        return self.stylized_image
         
+        
+    def save_image(self, path):
+        self.stylized_image.save(path)
+    
     def _convert_to_image(self, tensor):
         tensor = tensor * 255
         tensor = np.array(tensor, dtype=np.uint8)
