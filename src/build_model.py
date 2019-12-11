@@ -58,8 +58,14 @@ class HubStylizedImage():
         return self.stylized_image
         
         
-    def save_image(self, path):
-        self.stylized_image.save(path)
+    def save_image(self, path, resized_width=None, resized_height=None):
+        """
+        Save image to specified path.
+        Default sizes: width=384, height=512
+        """
+        resized_image = self.stylized_image.resize(
+            size=(resized_width, resized_height))
+        resized_image.save(path)
     
     def _convert_to_image(self, tensor):
         tensor = tensor * 255
