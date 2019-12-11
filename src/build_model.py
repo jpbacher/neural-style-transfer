@@ -42,10 +42,13 @@ class LoadResizeImages():
 
 class HubStylizedImage():
     """Use transfer learning to make a stylized image quickly."""
-    def __init__(self, content_image, style_image, module_to_load):
+    def __init__(self, 
+                 content_image, 
+                 style_image, 
+                 module_to_load='https://tfhub.dev/google/magenta/'
+                     'arbitrary-image-stylization-v1-256/1'):
         self.content_image = content_image
         self.style_image = style_image
-        # a module from tf-hub
         self.module_to_load = hub.load(module_to_load)
         
     def get_stylized_image(self):
