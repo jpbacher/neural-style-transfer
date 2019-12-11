@@ -10,10 +10,6 @@ class LoadResizeImages():
     """
     This class loads and processes (scales & resizes) the content & style images 
     for the Neural Style Transfer.
-    Arguments:
-    
-    Returns:
-    
     """
     def __init__(self, content_path, style_path, resolution_max):
         self.content_path = content_path
@@ -49,8 +45,8 @@ class HubStylizedImage():
     def __init__(self, content_image, style_image, module_to_load):
         self.content_image = content_image
         self.style_image = style_image
+        # a module from tf-hub
         self.module_to_load = hub.load(module_to_load)
-        # self._get_stylized_image(self.content_image, self.style_image)
         
     def get_stylized_image(self):
         stylized_image = self.module_to_load(tf.constant(self.content_image),
