@@ -6,7 +6,7 @@ import tensorflow_hub as hub
 from PIL import Image
 
 
-class LoadResizeImages():
+class LoadResizeImages:
     """
     This class loads and processes (scales & resizes) the content & style images 
     for the Neural Style Transfer.
@@ -40,7 +40,7 @@ class LoadResizeImages():
         return tf.image.rot90(image, k=rotations)
     
 
-class HubStylizedImage():
+class HubStylizedImage:
     """Use transfer learning to make a stylized image quickly."""
     def __init__(self, 
                  content_image, 
